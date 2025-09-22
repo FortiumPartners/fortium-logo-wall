@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Partner Logo Wall</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: transparent;
+            min-height: auto;
+        }
+
+        .fp-cloud {
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        .fp-grid {
+            display: grid;
+            grid-template-columns: repeat(12, minmax(0,1fr));
+            gap: 4px;
+            align-items: stretch;
+        }
+
+        /* Responsive fallbacks */
+        @media (max-width: 1280px) {
+            .fp-grid { grid-template-columns: repeat(8, 1fr); }
+        }
+        @media (max-width: 900px) {
+            .fp-grid { grid-template-columns: repeat(6, 1fr); }
+        }
+        @media (max-width: 640px) {
+            .fp-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        .fp-tile {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            background: white;
+            border: 2px solid #e2e8f0;
+        }
+
+        .fp-tile:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .fp-tile.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .fp-face, .fp-logo, .fp-logo-static {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backface-visibility: hidden;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+
+        .fp-logo {
+            transform: rotateY(180deg);
+        }
+
+        .fp-face img, .fp-logo img, .fp-logo-static img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 6px;
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .fp-logo img, .fp-logo-static img {
+            object-fit: contain;
+            padding: 8px;
+        }
+
+        .fp-initials {
+            width: 60%;
+            height: 60%;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .fp-company-initials {
+            background: #6b7280;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="fp-cloud" id="fp-logo-people-cloud">
+        <div class="fp-grid"></div>
+    </div>
+
+    <script>
+        // Configuration
+        const ROWS = 6;
+        const COLS = 12;
+        const FLIP_EVERY_MS = 2200;
+        const FLIP_BATCH = 3;
+
+        let LOGODEV_PK = "pk_LvNFXBEMQf2ygwE5RsYVUA";
+        const IMG_BASE = "https://img.logo.dev";
+
+        // Sample data fallback (same as original)
+        const SAMPLE_DATA = [
+            {
+                partnerId: "sarah-chen",
+                partnerName: "Sarah Chen",
+                photoUrl: "https://via.placeholder.com/480x360/dc2626/ffffff?text=Sarah+Chen",
+                companies: [
+                    { name: "Microsoft", domain: "microsoft.com", prominence: 100 },
+                    { name: "Adobe", domain: "adobe.com", prominence: 85 }
+                ]
+            },
+            {
+                partnerId: "michael-torres",
+                partnerName: "Michael Torres",
+                photoUrl: "https://via.placeholder.com/480x360/7c3aed/ffffff?text=Michael+Torres",
+                companies: [
+                    { name: "Amazon", domain: "amazon.com", prominence: 100 }
+                ]
+            },
+            {
+                partnerId: "jennifer-wright",
+                partnerName: "Jennifer Wright",
+                photoUrl: "https://via.placeholder.com/480x360/ea580c/ffffff?text=Jennifer+Wright",
+                companies: [
+                    { name: "Apple", domain: "apple.com", prominence: 100 },
+                    { name: "Tesla", domain: "tesla.com", prominence: 95 }
+                ]
+            },
+            {
+                partnerId: "david-kim",
+                partnerName: "David Kim",
+                photoUrl: "https://via.placeholder.com/480x360/0891b2/ffffff?text=David+Kim",
+                companies: [
+                    { name: "Google", domain: "google.com", prominence: 100 }
+                ]
+            }
+        ];
+
+        let currentFlipInterval = null;
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Load from API by default
+            loadFromAPI('/api');
+        });
+
+        async function loadFromAPI(apiBaseUrl) {
+            try {
+                const [usersResponse, companiesResponse] = await Promise.all([
+                    fetch(`${apiBaseUrl}/users`),
+                    fetch(`${apiBaseUrl}/companies`)
+                ]);
+
+                if (!usersResponse.ok || !companiesResponse.ok) {
+                    throw new Error('API request failed');
+                }
+
+                const [users, companies] = await Promise.all([
+                    usersResponse.json(),
+                    companiesResponse.json()
+                ]);
+
+                console.log('Raw API data:', users.length, 'users,', companies.length, 'companies');
+
+                // Transform API data to widget format (without UserCompany relationships)
+                const partnersData = transformAPIDataSimple(users, companies);
+                console.log('Transformed partners data:', partnersData.length, partnersData.slice(0, 3));
+                console.log('Sample user object:', users[0]);
+                await initWidget(partnersData);
+            } catch (error) {
+                console.warn('Could not load from API, using sample data:', error);
+                await initWidget(SAMPLE_DATA);
+            }
+        }
+
+        function transformAPIDataSimple(users, companies) {
+            // Filter for active partners only
+            const activePartners = users.filter(user =>
+                user.Active === true &&
+                user.IsPartner === true
+            );
+
+            // Create company lookup
+            const companyLookup = {};
+            companies.forEach(company => {
+                companyLookup[company.Name] = {
+                    name: company.Name,
+                    domain: company.Domain,
+                    logo: company.Logo,
+                    prominence: Math.floor(Math.random() * 100) + 1
+                };
+            });
+
+            return activePartners.map(partner => {
+                // Use a random subset of companies for demonstration
+                const availableCompanies = Object.values(companyLookup);
+                const randomCompanies = shuffleArray(availableCompanies).slice(0, Math.floor(Math.random() * 3) + 1);
+
+                return {
+                    partnerId: partner.Uid,
+                    partnerName: partner.DisplayName || `${partner.FirstName} ${partner.LastName}`,
+                    photoUrl: getPhotoUrl(partner.PrimaryEmail),
+                    hasPhoto: false, // Assume no photos for now since we don't have a reliable source
+                    companies: randomCompanies
+                };
+            });
+        }
+
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        function getPhotoUrl(email) {
+            if (!email) return null;
+            // Placeholder for actual photo service
+            return null;
+        }
+
+        async function initWidget(partners) {
+            const grid = document.querySelector('#fp-logo-people-cloud .fp-grid');
+            const totalCells = ROWS * COLS;
+
+            // Clear existing content
+            grid.innerHTML = '';
+
+            // Clear existing interval
+            if (currentFlipInterval) {
+                clearInterval(currentFlipInterval);
+            }
+
+            // Build entries list - conditional flipping mode
+            const entries = partners.map(p => {
+                const primary = [...p.companies].sort((a,b) => (b.prominence||0)-(a.prominence||0))[0] || null;
+                const primaryDomain = primary ? primary.domain : null;
+                const primaryLogoUrl = primary ? primary.logoUrl : null;
+                return {
+                    partnerId: p.partnerId,
+                    partnerName: p.partnerName,
+                    photoUrl: p.photoUrl,
+                    hasPhoto: p.hasPhoto,
+                    primaryDomain,
+                    primaryCompany: primary?.name,
+                    primaryLogoUrl
+                };
+            }).filter(e => e.primaryDomain); // Include all partners with companies
+
+            console.log('Filtered entries for widget:', entries.length, entries.slice(0, 3));
+
+            if (entries.length === 0) {
+                grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #6b7280;">No valid partner data found</div>';
+                return;
+            }
+
+            // Fill grid by cycling through entries
+            const pool = [];
+            while (pool.length < totalCells) pool.push(...entries);
+            const cellsData = pool.slice(0, totalCells);
+
+            // Create tiles
+            const cells = await Promise.all(cellsData.map(async (entry, i) => {
+                const tile = document.createElement('button');
+                const hasFlipping = entry.hasPhoto;
+
+                if (hasFlipping) {
+                    // Partner with photo - enable flipping
+                    tile.className = 'fp-tile';
+                    tile.setAttribute('aria-label', `${entry.partnerName} - ${entry.primaryCompany}`);
+                } else {
+                    // Logo-only tile (no partner photo)
+                    tile.className = 'fp-tile fp-logo-only';
+                    tile.setAttribute('aria-label', `${entry.primaryCompany} logo`);
+                }
+
+                tile.type = 'button';
+                tile.dataset.partnerId = entry.partnerId;
+                tile.dataset.hasFlipping = hasFlipping;
+
+                if (hasFlipping) {
+                    // Face side (only for partners with photos)
+                    const faceSide = document.createElement('div');
+                    faceSide.className = 'fp-face';
+                    let faceImg = null;
+
+                    faceImg = document.createElement('img');
+                    faceImg.src = entry.photoUrl;
+                    faceImg.alt = `${entry.partnerName}`;
+                    faceImg.loading = 'lazy';
+                    faceImg.decoding = 'async';
+
+                    // Add error handling for broken images
+                    faceImg.onerror = function() {
+                        this.style.display = 'none';
+                        const initials = getInitials(entry.partnerName);
+                        const initialsDiv = document.createElement('div');
+                        initialsDiv.className = 'fp-initials';
+                        initialsDiv.textContent = initials;
+                        faceSide.appendChild(initialsDiv);
+                    };
+
+                    faceSide.appendChild(faceImg);
+                    tile.appendChild(faceSide);
+                }
+
+                // Logo side (for all tiles)
+                const logoSide = document.createElement('div');
+                logoSide.className = hasFlipping ? 'fp-logo' : 'fp-logo-static';
+                const logoImg = document.createElement('img');
+                logoImg.alt = `${entry.primaryCompany} logo`;
+                logoImg.loading = 'lazy';
+                logoImg.decoding = 'async';
+                logoImg.src = entry.primaryLogoUrl || await logoUrl(entry.primaryDomain);
+
+                // Add error handling for broken logos with Clearbit fallback
+                logoImg.onerror = function() {
+                    // Try Clearbit as fallback
+                    const clearbitUrl = `https://logo.clearbit.com/${entry.primaryDomain}`;
+                    if (this.src !== clearbitUrl) {
+                        this.src = clearbitUrl;
+                        return;
+                    }
+
+                    // If both Logo.dev and Clearbit fail, show initials
+                    this.style.display = 'none';
+                    const companyInitials = getCompanyInitials(entry.primaryCompany);
+                    const companyInitialsDiv = document.createElement('div');
+                    companyInitialsDiv.className = 'fp-company-initials';
+                    companyInitialsDiv.textContent = companyInitials;
+                    logoSide.appendChild(companyInitialsDiv);
+                };
+
+                logoSide.appendChild(logoImg);
+                tile.appendChild(logoSide);
+                grid.appendChild(tile);
+
+                // Only add flipping behavior for tiles with photos
+                if (hasFlipping) {
+                    tile.addEventListener('mouseenter', () => flipToOpposite(tile));
+                    tile.addEventListener('mouseleave', () => flipToOpposite(tile));
+                    tile.addEventListener('focus', () => flipToOpposite(tile));
+                    tile.addEventListener('blur', () => flipToOpposite(tile));
+                    tile.addEventListener('click', () => flipToOpposite(tile));
+                }
+
+                return { tile, entry, faceImg: hasFlipping ? faceImg : null, logoImg };
+            }));
+
+            // Auto-flip interval - simple approach that works
+            const randIndices = () => shuffle([...cells.keys()]).slice(0, Math.min(FLIP_BATCH, cells.length));
+
+            currentFlipInterval = setInterval(() => {
+                if (isInViewport(grid)) {
+                    randIndices().forEach(i => {
+                        const cell = cells[i];
+                        const hasFlipping = cell.tile.dataset.hasFlipping === 'true';
+
+                        if (hasFlipping) {
+                            // Flip between face and logo
+                            flipToOpposite(cell.tile);
+                        } else {
+                            // Change to a random company logo
+                            const randomEntry = entries[Math.floor(Math.random() * entries.length)];
+                            updateStaticTileLogo(cell, randomEntry);
+                        }
+                    });
+                }
+            }, FLIP_EVERY_MS);
+        }
+
+        function flipToOpposite(tile) {
+            tile.classList.toggle('flipped');
+        }
+
+        function updateStaticTileLogo(cellData, newEntry) {
+            const logoImg = cellData.tile.querySelector('.fp-logo-static img');
+            const tile = cellData.tile;
+
+            if (logoImg && newEntry) {
+                // Add fade transition
+                logoImg.style.transition = 'opacity 0.3s ease';
+                logoImg.style.opacity = '0';
+
+                setTimeout(async () => {
+                    logoImg.src = newEntry.primaryLogoUrl || await logoUrl(newEntry.primaryDomain);
+                    logoImg.alt = `${newEntry.primaryCompany} logo`;
+                    tile.setAttribute('aria-label', `${newEntry.primaryCompany} logo`);
+
+                    logoImg.onload = () => {
+                        logoImg.style.opacity = '1';
+                    };
+
+                    // Handle broken logos
+                    logoImg.onerror = function() {
+                        // Try Clearbit as fallback
+                        const clearbitUrl = `https://logo.clearbit.com/${newEntry.primaryDomain}`;
+                        if (this.src !== clearbitUrl) {
+                            this.src = clearbitUrl;
+                            return;
+                        }
+
+                        // If both Logo.dev and Clearbit fail, show initials
+                        this.style.display = 'none';
+                        const logoSide = this.parentElement;
+
+                        // Remove existing company initials
+                        const existingInitials = logoSide.querySelector('.fp-company-initials');
+                        if (existingInitials) existingInitials.remove();
+
+                        const companyInitials = getCompanyInitials(newEntry.primaryCompany);
+                        const companyInitialsDiv = document.createElement('div');
+                        companyInitialsDiv.className = 'fp-company-initials';
+                        companyInitialsDiv.textContent = companyInitials;
+                        companyInitialsDiv.style.opacity = '1';
+                        logoSide.appendChild(companyInitialsDiv);
+                    };
+                }, 150);
+            }
+        }
+
+        async function logoUrl(domain) {
+            try {
+                const response = await fetch(`/api/logo/${encodeURIComponent(domain)}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    return data.logoUrl;
+                }
+            } catch (error) {
+                console.warn('Logo.dev API failed for', domain, error);
+            }
+
+            // Fallback to Clearbit if Logo.dev fails
+            return `https://logo.clearbit.com/${domain}`;
+        }
+
+        function shuffle(arr) {
+            const shuffled = [...arr];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        function isInViewport(element) {
+            const rect = element.getBoundingClientRect();
+            return (
+                rect.top < window.innerHeight &&
+                rect.bottom > 0 &&
+                rect.left < window.innerWidth &&
+                rect.right > 0
+            );
+        }
+
+        function getInitials(name) {
+            if (!name) return 'FP';
+            return name.split(' ')
+                .map(word => word.charAt(0).toUpperCase())
+                .slice(0, 2)
+                .join('');
+        }
+
+        function getCompanyInitials(companyName) {
+            if (!companyName) return 'CO';
+            return companyName
+                .split(' ')
+                .map(word => word.charAt(0).toUpperCase())
+                .slice(0, 3)
+                .join('');
+        }
+    </script>
+</body>
+</html>

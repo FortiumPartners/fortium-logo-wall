@@ -60,6 +60,11 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+// Serve the embed version (clean, no header/controls)
+app.get('/embed', (req, res) => {
+    res.sendFile(path.join(__dirname, 'embed.html'));
+});
+
 // Proxy API calls to Fortium Partners API with OAuth2 authentication
 app.get('/api/users', async (req, res) => {
     try {
