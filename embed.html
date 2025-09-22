@@ -289,10 +289,28 @@
                 return;
             }
 
-            // Fill grid by cycling through entries
-            const pool = [];
-            while (pool.length < totalCells) pool.push(...entries);
-            const cellsData = pool.slice(0, totalCells);
+            // Fill grid ensuring no duplicates
+            const cellsData = [];
+            const usedCompanies = new Set();
+
+            // First pass: fill with unique companies
+            for (let i = 0; i < totalCells && entries.length > 0; i++) {
+                const availableEntries = entries.filter(entry =>
+                    !usedCompanies.has(entry.primaryCompany)
+                );
+
+                if (availableEntries.length > 0) {
+                    const randomEntry = availableEntries[Math.floor(Math.random() * availableEntries.length)];
+                    cellsData.push(randomEntry);
+                    usedCompanies.add(randomEntry.primaryCompany);
+                } else {
+                    // If we run out of unique companies, start cycling again
+                    usedCompanies.clear();
+                    const randomEntry = entries[Math.floor(Math.random() * entries.length)];
+                    cellsData.push(randomEntry);
+                    usedCompanies.add(randomEntry.primaryCompany);
+                }
+            }
 
             // Create tiles
             const cells = await Promise.all(cellsData.map(async (entry, i) => {
@@ -395,8 +413,24 @@
                             // Flip between face and logo
                             flipToOpposite(cell.tile);
                         } else {
-                            // Change to a random company logo
-                            const randomEntry = entries[Math.floor(Math.random() * entries.length)];
+                            // Change to a random company logo (ensuring no duplicates)
+                            const currentCompanies = new Set();
+                            cells.forEach((c, idx) => {
+                                if (idx !== i) { // Don't include the current cell we're updating
+                                    const companyName = c.entry.primaryCompany;
+                                    if (companyName) currentCompanies.add(companyName);
+                                }
+                            });
+
+                            // Find available entries not currently displayed
+                            const availableEntries = entries.filter(entry =>
+                                !currentCompanies.has(entry.primaryCompany)
+                            );
+
+                            const randomEntry = availableEntries.length > 0
+                                ? availableEntries[Math.floor(Math.random() * availableEntries.length)]
+                                : entries[Math.floor(Math.random() * entries.length)]; // fallback if all are used
+
                             updateStaticTileLogo(cell, randomEntry);
                         }
                     });
@@ -413,6 +447,9 @@
             const tile = cellData.tile;
 
             if (logoImg && newEntry) {
+                // Update the cell's entry reference
+                cellData.entry = newEntry;
+
                 // Add fade transition
                 logoImg.style.transition = 'opacity 0.3s ease';
                 logoImg.style.opacity = '0';
