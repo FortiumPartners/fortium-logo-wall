@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fortium Partners - Logo Wall</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            margin: 0;
+            padding: 40px 20px;
+            background: #f8fafc;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #1e293b;
+            margin-bottom: 40px;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .fp-cloud {
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .fp-grid {
+            display: grid;
+            grid-template-columns: repeat(12, minmax(0,1fr));
+            gap: 4px;
+            align-items: stretch;
+        }
+
+        /* Responsive fallbacks */
+        @media (max-width: 1280px) {
+            .fp-grid { grid-template-columns: repeat(8, 1fr); }
+        }
+        @media (max-width: 900px) {
+            .fp-grid { grid-template-columns: repeat(6, 1fr); }
+        }
+        @media (max-width: 640px) {
+            .fp-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        .fp-tile {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 8px;
+            background: #fff;
+            box-shadow: 0 1px 3px rgba(0,0,0,.08);
+            overflow: hidden;
+            perspective: 1000px;
+            cursor: pointer;
+            border: none;
+            transition: box-shadow 300ms ease, transform 300ms ease;
+        }
+
+        .fp-tile:hover {
+            box-shadow: 0 4px 20px rgba(0,0,0,.12);
+            transform: translateY(-2px);
+        }
+
+        .fp-face, .fp-logo {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            padding: 6%;
+            backface-visibility: hidden;
+            transition: transform 520ms ease, opacity 520ms ease;
+        }
+
+        .fp-face img, .fp-logo img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 6px;
+        }
+
+        .fp-initials {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 80%;
+            height: 80%;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            font-size: 1.8rem;
+            font-weight: 700;
+            border-radius: 50%;
+            text-transform: uppercase;
+        }
+
+        .fp-company-initials {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 80%;
+            height: 80%;
+            background: linear-gradient(135deg, #64748b, #334155);
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 600;
+            border-radius: 12px;
+            text-transform: uppercase;
+        }
+
+        .fp-logo-static {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            padding: 6%;
+        }
+
+        .fp-logo-static img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 6px;
+        }
+
+        .fp-tile.fp-logo-only .fp-logo-static {
+            opacity: 1;
+        }
+
+        .fp-face {
+            transform: rotateY(0deg);
+        }
+
+        .fp-logo {
+            transform: rotateY(180deg);
+            background: #fff;
+        }
+
+        .fp-tile.fp-show-logo .fp-face {
+            transform: rotateY(-180deg);
+            opacity: 0;
+        }
+
+        .fp-tile.fp-show-logo .fp-logo {
+            transform: rotateY(0deg);
+            opacity: 1;
+        }
+
+        .fp-tile.fp-show-face .fp-face {
+            transform: rotateY(0deg);
+            opacity: 1;
+        }
+
+        .fp-tile.fp-show-face .fp-logo {
+            transform: rotateY(180deg);
+            opacity: 0;
+        }
+
+        /* Keyboard focus + a11y */
+        .fp-tile:focus-visible {
+            outline: 2px solid #3b82f6;
+            outline-offset: 2px;
+            border-radius: 16px;
+        }
+
+        /* Reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+            .fp-face, .fp-logo {
+                transition: none;
+            }
+            .fp-tile {
+                transition: none;
+            }
+        }
+
+        .config-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.08);
+            margin-bottom: 30px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .config-panel label {
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .config-panel input {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .config-panel button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .config-panel button:hover {
+            background: #2563eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Fortium Partners</h1>
+
+        <div class="config-panel">
+            <div>
+                <label for="logodev-token">Logo.dev Token:</label>
+                <input type="text" id="logodev-token" placeholder="pk_..." value="pk_demo_token">
+            </div>
+            <div>
+                <label for="data-source">Data Source:</label>
+                <select id="data-source">
+                    <option value="sample">Sample Data</option>
+                    <option value="json">Load from partners.json</option>
+                    <option value="api" selected>Partner Connect API</option>
+                </select>
+            </div>
+            <div>
+                <label for="api-url">API Base URL:</label>
+                <input type="text" id="api-url" placeholder="/api" value="/api">
+            </div>
+            <button onclick="refreshWidget()">Refresh Widget</button>
+        </div>
+
+        <div id="fp-logo-people-cloud" class="fp-cloud">
+            <div class="fp-grid" aria-label="Fortium Partners — logos and partners"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIG ---
+        let LOGODEV_PK = "pk_demo_token";
+        const IMG_BASE = "https://img.logo.dev";
+        const LOGO_SIZE = 96;
+        const ROWS = 6;
+        const COLS = 12;
+        const FLIP_EVERY_MS = 2200;
+        const FLIP_BATCH = 5;
+
+        // --- SAMPLE DATA ---
+        const SAMPLE_DATA = [
+            {
+                partnerId: "simon-upton",
+                partnerName: "Simon Upton",
+                photoUrl: "https://via.placeholder.com/480x360/4f46e5/ffffff?text=Simon+Upton",
+                companies: [
+                    { name: "FirstEnergy", domain: "firstenergycorp.com", prominence: 100 },
+                    { name: "Owens Corning", domain: "owenscorning.com", prominence: 90 }
+                ]
+            },
+            {
+                partnerId: "ron-sorozan",
+                partnerName: "Ronald Sorozan",
+                photoUrl: "https://via.placeholder.com/480x360/059669/ffffff?text=Ron+Sorozan",
+                companies: [
+                    { name: "JAM+", domain: "jamplus.com", prominence: 100 }
+                ]
+            },
+            {
+                partnerId: "sarah-chen",
+                partnerName: "Sarah Chen",
+                photoUrl: "https://via.placeholder.com/480x360/dc2626/ffffff?text=Sarah+Chen",
+                companies: [
+                    { name: "Microsoft", domain: "microsoft.com", prominence: 100 },
+                    { name: "Adobe", domain: "adobe.com", prominence: 85 }
+                ]
+            },
+            {
+                partnerId: "michael-torres",
+                partnerName: "Michael Torres",
+                photoUrl: "https://via.placeholder.com/480x360/7c3aed/ffffff?text=Michael+Torres",
+                companies: [
+                    { name: "Amazon", domain: "amazon.com", prominence: 100 }
+                ]
+            },
+            {
+                partnerId: "jennifer-wright",
+                partnerName: "Jennifer Wright",
+                photoUrl: "https://via.placeholder.com/480x360/ea580c/ffffff?text=Jennifer+Wright",
+                companies: [
+                    { name: "Apple", domain: "apple.com", prominence: 100 },
+                    { name: "Tesla", domain: "tesla.com", prominence: 95 }
+                ]
+            },
+            {
+                partnerId: "david-kim",
+                partnerName: "David Kim",
+                photoUrl: "https://via.placeholder.com/480x360/0891b2/ffffff?text=David+Kim",
+                companies: [
+                    { name: "Google", domain: "google.com", prominence: 100 }
+                ]
+            }
+        ];
+
+        let currentFlipInterval = null;
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Load configuration from server
+            try {
+                const configResponse = await fetch('/api/config');
+                if (configResponse.ok) {
+                    const config = await configResponse.json();
+                    LOGODEV_PK = config.logodevToken;
+                    document.getElementById('logodev-token').value = LOGODEV_PK;
+                }
+            } catch (error) {
+                console.warn('Could not load config from server:', error);
+            }
+
+            // Load from API by default
+            loadFromAPI('/api');
+        });
+
+        async function refreshWidget() {
+            const tokenInput = document.getElementById('logodev-token');
+            const dataSource = document.getElementById('data-source');
+            const apiUrl = document.getElementById('api-url');
+
+            LOGODEV_PK = tokenInput.value || "pk_demo_token";
+
+            if (dataSource.value === 'json') {
+                loadFromJSON();
+            } else if (dataSource.value === 'api') {
+                loadFromAPI(apiUrl.value);
+            } else {
+                await initWidget(SAMPLE_DATA);
+            }
+        }
+
+        async function loadFromJSON() {
+            try {
+                const response = await fetch('./partners.json');
+                if (!response.ok) throw new Error('Failed to load partners.json');
+                const data = await response.json();
+                await initWidget(data);
+            } catch (error) {
+                console.warn('Could not load partners.json, using sample data:', error);
+                await initWidget(SAMPLE_DATA);
+            }
+        }
+
+        async function loadFromAPI(apiBaseUrl) {
+            try {
+                console.log('Fetching from Partner Connect API...');
+
+                // Fetch users and companies (UserCompany only supports Create/Update/Delete)
+                const [usersResponse, companiesResponse] = await Promise.all([
+                    fetch(`${apiBaseUrl}/users`),
+                    fetch(`${apiBaseUrl}/companies`)
+                ]);
+
+                if (!usersResponse.ok) throw new Error(`Users API failed: ${usersResponse.status}`);
+                if (!companiesResponse.ok) throw new Error(`Companies API failed: ${companiesResponse.status}`);
+
+                const [users, companies] = await Promise.all([
+                    usersResponse.json(),
+                    companiesResponse.json()
+                ]);
+
+                console.log('API Data loaded:', {
+                    users: users?.length || 0,
+                    companies: companies?.length || 0
+                });
+
+                // Transform API data to widget format (without UserCompany relationships)
+                const partnersData = transformAPIDataSimple(users, companies);
+                console.log('Transformed partners data:', partnersData.length, partnersData.slice(0, 3));
+                console.log('Sample user object:', users[0]);
+                await initWidget(partnersData);
+            } catch (error) {
+                console.warn('Could not load from API, using sample data:', error);
+                await initWidget(SAMPLE_DATA);
+            }
+        }
+
+        function transformAPIDataSimple(users, companies) {
+            // Since UserCompany relationships aren't available via GET,
+            // we'll just assign companies to users in a simple rotation
+            const partnersData = [];
+
+            users.forEach((user, index) => {
+                // Skip inactive users
+                if (!user.Active) return;
+
+                // Assign a company in rotation, or use a default
+                const company = companies[index % companies.length] || {
+                    name: "Fortium Partners",
+                    domain: "fortium.com"
+                };
+
+                const userCompanies = [{
+                    name: company.Name || company.name || "Partner Company",
+                    domain: company.Domain || company.Website || extractDomainFromCompany(company.Name || company.name || ""),
+                    logoUrl: company.Logo || company.logo || null,
+                    prominence: 100
+                }];
+
+                // Include all active partners, note if they have photos
+                const hasActualPhoto = user.PhotoUrl && user.PhotoUrl.trim() !== '';
+
+                partnersData.push({
+                    partnerId: user.Uid || user.uid || user.id,
+                    partnerName: user.FullName || `${user.FirstName || ''} ${user.LastName || ''}`.trim() || user.name || 'Partner',
+                    photoUrl: hasActualPhoto ? user.PhotoUrl : null,
+                    hasPhoto: hasActualPhoto,
+                    companies: userCompanies
+                });
+            });
+
+            return partnersData.filter(partner => partner.partnerName !== 'Partner');
+        }
+
+        function transformAPIDataComplete(users, companies, userCompanies) {
+            // Create maps for efficient lookup
+            const companyMap = new Map();
+            companies.forEach(company => {
+                companyMap.set(company.uid || company.id, company);
+            });
+
+            const userCompanyMap = new Map();
+            userCompanies.forEach(uc => {
+                const userUid = uc.userUid || uc.userId;
+                if (!userCompanyMap.has(userUid)) {
+                    userCompanyMap.set(userUid, []);
+                }
+                userCompanyMap.get(userUid).push(uc);
+            });
+
+            // Transform users into partner data
+            return users.map(user => {
+                const userUid = user.uid || user.id;
+                const userCompanyRelations = userCompanyMap.get(userUid) || [];
+
+                // Get companies for this user
+                const userCompanies = userCompanyRelations
+                    .map(uc => {
+                        const companyUid = uc.companyUid || uc.companyId;
+                        const company = companyMap.get(companyUid);
+                        if (!company) return null;
+
+                        return {
+                            name: company.name || company.companyName || 'Company',
+                            domain: company.domain || company.website || extractDomainFromCompany(company.name || ''),
+                            prominence: uc.prominence || uc.weight || 100
+                        };
+                    })
+                    .filter(Boolean)
+                    .sort((a, b) => (b.prominence || 0) - (a.prominence || 0));
+
+                // Fallback if no companies found
+                if (userCompanies.length === 0) {
+                    userCompanies.push({
+                        name: "Fortium Partners",
+                        domain: "fortium.com",
+                        prominence: 100
+                    });
+                }
+
+                return {
+                    partnerId: userUid,
+                    partnerName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.name || user.displayName || 'Partner',
+                    photoUrl: user.photoUrl || user.avatarUrl || user.profileImage || generateInitialsUrl(user.firstName, user.lastName),
+                    companies: userCompanies
+                };
+            }).filter(partner => partner.partnerName !== 'Partner'); // Remove fallback entries
+        }
+
+        function generateInitialsUrl(firstName, lastName) {
+            const initials = `${(firstName || 'P')[0]}${(lastName || 'P')[0]}`.toUpperCase();
+            const colors = ['4f46e5', '059669', 'dc2626', '7c3aed', 'ea580c', '0891b2', 'be185d', '0d9488'];
+            const color = colors[initials.charCodeAt(0) % colors.length];
+            return `https://via.placeholder.com/480x360/${color}/ffffff?text=${encodeURIComponent(initials)}`;
+        }
+
+        function extractDomainFromCompany(companyName) {
+            // Simple domain extraction/guessing
+            const cleanName = companyName.toLowerCase()
+                .replace(/[^a-z0-9\s]/g, '')
+                .replace(/\s+/g, '')
+                .replace(/(inc|corp|llc|ltd|company|co)$/, '');
+            return `${cleanName}.com`;
+        }
+
+        function getInitials(name) {
+            if (!name) return 'PP';
+            return name.split(' ')
+                .map(word => word.charAt(0).toUpperCase())
+                .slice(0, 2)
+                .join('');
+        }
+
+        function getCompanyInitials(companyName) {
+            if (!companyName) return 'CO';
+            return companyName
+                .split(' ')
+                .map(word => word.charAt(0).toUpperCase())
+                .slice(0, 3)
+                .join('');
+        }
+
+        function getLinkedInProfileImage(linkedinUrl) {
+            // Try a few LinkedIn profile image patterns
+            if (!linkedinUrl) return null;
+
+            try {
+                // Extract LinkedIn username from URL
+                const username = linkedinUrl.match(/linkedin\.com\/in\/([^\/\?]+)/)?.[1];
+                if (!username) return null;
+
+                // Method 1: Try LinkedIn's common profile image pattern
+                // Note: This may not work due to LinkedIn's privacy settings
+                return `https://media.licdn.com/dms/image/v2/profileDisplayPhoto/${username}`;
+            } catch (error) {
+                console.warn('Error extracting LinkedIn image:', error);
+                return null;
+            }
+        }
+
+        function getClearbitPersonImage(email) {
+            // Clearbit Person API for profile images
+            if (!email) return null;
+
+            try {
+                return `https://person.clearbit.com/v1/people/email/${encodeURIComponent(email)}`;
+            } catch (error) {
+                console.warn('Error getting Clearbit image:', error);
+                return null;
+            }
+        }
+
+        async function initWidget(partners) {
+            const grid = document.querySelector('#fp-logo-people-cloud .fp-grid');
+            const totalCells = ROWS * COLS;
+
+            // Clear existing content
+            grid.innerHTML = '';
+
+            // Clear existing interval
+            if (currentFlipInterval) {
+                clearInterval(currentFlipInterval);
+            }
+
+            // Build entries list - conditional flipping mode
+            const entries = partners.map(p => {
+                const primary = [...p.companies].sort((a,b) => (b.prominence||0)-(a.prominence||0))[0] || null;
+                const primaryDomain = primary ? primary.domain : null;
+                const primaryLogoUrl = primary ? primary.logoUrl : null;
+                return {
+                    partnerId: p.partnerId,
+                    partnerName: p.partnerName,
+                    photoUrl: p.photoUrl,
+                    hasPhoto: p.hasPhoto,
+                    primaryDomain,
+                    primaryCompany: primary?.name,
+                    primaryLogoUrl
+                };
+            }).filter(e => e.primaryDomain); // Include all partners with companies
+
+            console.log('Filtered entries for widget:', entries.length, entries.slice(0, 3));
+
+            if (entries.length === 0) {
+                grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #6b7280;">No valid partner data found</div>';
+                return;
+            }
+
+            // Fill grid by cycling through entries
+            const pool = [];
+            while (pool.length < totalCells) pool.push(...entries);
+            const cellsData = pool.slice(0, totalCells);
+
+            // Create tiles
+            const cells = await Promise.all(cellsData.map(async (entry, i) => {
+                const tile = document.createElement('button');
+                const hasFlipping = entry.hasPhoto;
+
+                if (hasFlipping) {
+                    // Flipping tile (has partner photo)
+                    tile.className = 'fp-tile fp-show-face';
+                    tile.setAttribute('aria-label', `${entry.partnerName} - Click to flip between photo and ${entry.primaryCompany} logo`);
+                } else {
+                    // Logo-only tile (no partner photo)
+                    tile.className = 'fp-tile fp-logo-only';
+                    tile.setAttribute('aria-label', `${entry.primaryCompany} logo`);
+                }
+
+                tile.type = 'button';
+                tile.dataset.partnerId = entry.partnerId;
+                tile.dataset.hasFlipping = hasFlipping;
+
+                if (hasFlipping) {
+                    // Face side (only for partners with photos)
+                    const faceSide = document.createElement('div');
+                    faceSide.className = 'fp-face';
+                    let faceImg = null;
+
+                    faceImg = document.createElement('img');
+                    faceImg.src = entry.photoUrl;
+                    faceImg.alt = `${entry.partnerName}`;
+                    faceImg.loading = 'lazy';
+                    faceImg.decoding = 'async';
+
+                    // Add error handling for broken images
+                    faceImg.onerror = function() {
+                        this.style.display = 'none';
+                        const initials = getInitials(entry.partnerName);
+                        const initialsDiv = document.createElement('div');
+                        initialsDiv.className = 'fp-initials';
+                        initialsDiv.textContent = initials;
+                        faceSide.appendChild(initialsDiv);
+                    };
+
+                    faceSide.appendChild(faceImg);
+                    tile.appendChild(faceSide);
+                }
+
+                // Logo side (for all tiles)
+                const logoSide = document.createElement('div');
+                logoSide.className = hasFlipping ? 'fp-logo' : 'fp-logo-static';
+                const logoImg = document.createElement('img');
+                logoImg.alt = `${entry.primaryCompany} logo`;
+                logoImg.loading = 'lazy';
+                logoImg.decoding = 'async';
+                logoImg.src = entry.primaryLogoUrl || await logoUrl(entry.primaryDomain);
+
+                // Add error handling for broken logos with Clearbit fallback
+                logoImg.onerror = function() {
+                    // Try Clearbit as fallback
+                    const clearbitUrl = `https://logo.clearbit.com/${entry.primaryDomain}`;
+                    if (this.src !== clearbitUrl) {
+                        this.src = clearbitUrl;
+                        return;
+                    }
+
+                    // If both Logo.dev and Clearbit fail, show initials
+                    this.style.display = 'none';
+                    const companyInitials = getCompanyInitials(entry.primaryCompany);
+                    const companyInitialsDiv = document.createElement('div');
+                    companyInitialsDiv.className = 'fp-company-initials';
+                    companyInitialsDiv.textContent = companyInitials;
+                    logoSide.appendChild(companyInitialsDiv);
+                };
+
+                logoSide.appendChild(logoImg);
+                tile.appendChild(logoSide);
+                grid.appendChild(tile);
+
+                // Only add flipping behavior for tiles with photos
+                if (hasFlipping) {
+                    tile.addEventListener('mouseenter', () => flipToOpposite(tile));
+                    tile.addEventListener('mouseleave', () => flipToOpposite(tile));
+                    tile.addEventListener('focus', () => flipToOpposite(tile));
+                    tile.addEventListener('blur', () => flipToOpposite(tile));
+                    tile.addEventListener('click', () => flipToOpposite(tile));
+                }
+
+                return { tile, entry, faceImg: hasFlipping ? faceImg : null, logoImg };
+            }));
+
+            // Auto-flip interval - simple approach that works
+            const randIndices = () => shuffle([...cells.keys()]).slice(0, Math.min(FLIP_BATCH, cells.length));
+
+            currentFlipInterval = setInterval(() => {
+                if (isInViewport(grid)) {
+                    randIndices().forEach(i => {
+                        const cell = cells[i];
+                        const hasFlipping = cell.tile.dataset.hasFlipping === 'true';
+
+                        if (hasFlipping) {
+                            // Flip between face and logo
+                            flipToOpposite(cell.tile);
+                        } else {
+                            // Change to a random company logo
+                            const randomEntry = entries[Math.floor(Math.random() * entries.length)];
+                            updateStaticTileLogo(cell, randomEntry);
+                        }
+                    });
+                }
+            }, FLIP_EVERY_MS);
+        }
+
+        function flipToOpposite(tile) {
+            if (tile.classList.contains('fp-show-face')) {
+                tile.classList.remove('fp-show-face');
+                tile.classList.add('fp-show-logo');
+            } else {
+                tile.classList.remove('fp-show-logo');
+                tile.classList.add('fp-show-face');
+            }
+        }
+
+        function updateStaticTileLogo(cellData, newEntry) {
+            const logoImg = cellData.tile.querySelector('.fp-logo-static img');
+            const tile = cellData.tile;
+
+            if (logoImg && newEntry) {
+                // Add fade transition
+                logoImg.style.transition = 'opacity 0.3s ease';
+                logoImg.style.opacity = '0';
+
+                setTimeout(async () => {
+                    logoImg.src = newEntry.primaryLogoUrl || await logoUrl(newEntry.primaryDomain);
+                    logoImg.alt = `${newEntry.primaryCompany} logo`;
+                    tile.setAttribute('aria-label', `${newEntry.primaryCompany} logo`);
+
+                    logoImg.onload = () => {
+                        logoImg.style.opacity = '1';
+                    };
+
+                    // Handle broken logos
+                    logoImg.onerror = function() {
+                        this.style.display = 'none';
+                        const logoSide = this.parentElement;
+
+                        // Remove existing company initials
+                        const existingInitials = logoSide.querySelector('.fp-company-initials');
+                        if (existingInitials) existingInitials.remove();
+
+                        const companyInitials = getCompanyInitials(newEntry.primaryCompany);
+                        const companyInitialsDiv = document.createElement('div');
+                        companyInitialsDiv.className = 'fp-company-initials';
+                        companyInitialsDiv.textContent = companyInitials;
+                        companyInitialsDiv.style.opacity = '1';
+                        logoSide.appendChild(companyInitialsDiv);
+                    };
+                }, 150);
+            }
+        }
+
+        async function logoUrl(domain) {
+            try {
+                const response = await fetch(`/api/logo/${encodeURIComponent(domain)}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    return data.logoUrl;
+                }
+            } catch (error) {
+                console.warn('Logo.dev API failed for', domain, error);
+            }
+
+            // Fallback to Clearbit if Logo.dev fails
+            return `https://logo.clearbit.com/${domain}`;
+        }
+
+        function shuffle(arr) {
+            const shuffled = [...arr];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        function isInViewport(element) {
+            const rect = element.getBoundingClientRect();
+            return (
+                rect.top < window.innerHeight &&
+                rect.bottom > 0 &&
+                rect.left < window.innerWidth &&
+                rect.right > 0
+            );
+        }
+
+        // Pause animations when page is not visible
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && currentFlipInterval) {
+                clearInterval(currentFlipInterval);
+            } else if (!document.hidden) {
+                refreshWidget();
+            }
+        });
+    </script>
+</body>
+</html>

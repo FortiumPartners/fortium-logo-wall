@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: fortium-logo-wall
+    env: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: oregon
+    buildCommand: ""
+    startCommand: ""
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: FORTIUM_API_URL
+        value: https://prod-v3.fortiumpartners.io/v3
+      - key: FORTIUM_CLIENT_ID
+        value: vvH67sZQzkwvRGuP4k4miCeHHhyuPZy9
+      - key: FORTIUM_CLIENT_SECRET
+        value: Slo3NhIASEVcjDNfShZnudRhuYa7JHHqfb31kbD8MrrhDUsbw5KUTWP5gZe6TH5_
+      - key: FORTIUM_TOKEN_ENDPOINT
+        value: https://prod-fs-fortiumpartners.us.auth0.com/oauth/token
+      - key: FORTIUM_AUDIENCE
+        value: https://prod-v3.fortiumpartners.io
+      - key: FORTIUM_API_KEY
+        value: 1dfb47ce-ec29-4069-bdbb-1e771d9d3e60
+      - key: LOGODEV_TOKEN
+        value: pk_LvNFXBEMQf2ygwE5RsYVUA
+      - key: LOGODEV_SEARCH_TOKEN
+        value: sk_c0idPA4dTGSo_3qUkg0ezw

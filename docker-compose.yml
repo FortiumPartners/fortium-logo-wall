@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  logowall:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - FORTIUM_API_URL=https://prod-v3.fortiumpartners.io/v3
+      - FORTIUM_CLIENT_ID=vvH67sZQzkwvRGuP4k4miCeHHhyuPZy9
+      - FORTIUM_CLIENT_SECRET=Slo3NhIASEVcjDNfShZnudRhuYa7JHHqfb31kbD8MrrhDUsbw5KUTWP5gZe6TH5_
+      - FORTIUM_TOKEN_ENDPOINT=https://prod-fs-fortiumpartners.us.auth0.com/oauth/token
+      - FORTIUM_AUDIENCE=https://prod-v3.fortiumpartners.io
+      - FORTIUM_API_KEY=1dfb47ce-ec29-4069-bdbb-1e771d9d3e60
+      - LOGODEV_TOKEN=pk_LvNFXBEMQf2ygwE5RsYVUA
+      - LOGODEV_SEARCH_TOKEN=sk_c0idPA4dTGSo_3qUkg0ezw
+    healthcheck:
+      test: ["CMD", "node", "-e", "const http = require('http'); const req = http.request({hostname: 'localhost', port: 3000, path: '/api/config'}, (res) => process.exit(res.statusCode === 200 ? 0 : 1)); req.on('error', () => process.exit(1)); req.end();"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
